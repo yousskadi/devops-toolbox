@@ -2,6 +2,36 @@
 
 **Objectif :** injecter les secrets **en fichier** dans le pod via un sidecar Vault Agent, sans jamais créer de Secret Kubernetes.
 
+## 🎯 Comprendre avant de pratiquer
+
+**En une phrase :** un **sidecar Vault Agent** est ajouté automatiquement dans le pod. Il s'authentifie auprès de Vault, écrit les secrets dans un **fichier en mémoire** (`/vault/secrets/...`) et les **tient à jour**.
+
+**Analogie :** un **assistant personnel** attaché à chaque employé. Il va chercher les documents au coffre, les pose sur le bureau dans le bon format, et remplace ceux qui sont périmés, sans que l'employé n'ait jamais à aller au coffre.
+
+**Exemple concret :** une appli Java legacy qui lit un fichier `application.properties` et ne sait rien de Vault :
+```properties
+# généré par le template Vault Agent dans /vault/secrets/application.properties
+spring.datasource.username=v-k8s-shop-a8f2      ← identifiant DB dynamique (lab 04)
+spring.datasource.password=Qm8...               ← renouvelé automatiquement
+stripe.key=sk_live_...                          ← lu dans KV
+```
+L'appli n'a **aucune ligne de code Vault**.
+
+**À quoi ça sert en prod :**
+- Les **secrets ne passent jamais dans etcd** (pas de Secret Kubernetes) : c'est souvent une exigence de conformité.
+- Les **secrets dynamiques** (DB, PKI) sont **renouvelés** tant que le pod vit, puis révoqués à sa mort.
+- **Templating** : on génère n'importe quel fichier de config (properties, JSON, .env, nginx.conf).
+- **Rechargement** : on peut lancer une commande après chaque changement (par exemple recharger nginx quand le certificat change).
+
+**ESO ou Agent Injector ?**
+- **ESO** est plus simple et multi-fournisseur (AWS, GCP, Azure…). L'appli lit un Secret Kubernetes classique. Mais ce secret est stocké dans etcd.
+- **Agent Injector** est plus sécurisé et plus riche (dynamique, templates), mais il ajoute un sidecar par pod.
+
+**Pièges en prod :**
+- Un sidecar **par pod**, soit des centaines de conteneurs en plus : il faut fixer leurs limites CPU et mémoire.
+- **Jobs et CronJobs** : utilise `agent-pre-populate-only`, sinon le sidecar empêche le Job de se terminer.
+- L'appli doit **relire le fichier** quand il change, ou être redémarrée.
+
 Prérequis : lab 07 fait (auth Kubernetes, rôle `webapp`, secret `lab/webapp/db`).
 
 ## ESO, Agent Injector ou CSI : lequel choisir ?

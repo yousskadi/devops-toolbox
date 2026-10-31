@@ -2,6 +2,34 @@
 
 **Objectif :** la vraie force de Vault. Au lieu de stocker un mot de passe DB partagé et éternel, Vault **crée un utilisateur à la demande**, avec une durée de vie, et le supprime automatiquement.
 
+## 🎯 Comprendre avant de pratiquer
+
+**En une phrase :** au lieu d'un mot de passe DB partagé et éternel, Vault **crée un utilisateur DB unique à la demande**, avec une date d'expiration, et le **supprime automatiquement**.
+
+**Analogie, l'hôtel :** fini le passe-partout distribué à tout le monde. Chaque client reçoit une **carte-clé programmée pour son séjour**. Au check-out, elle ne marche plus. Si un client perd sa carte, on désactive **la sienne**, sans changer toutes les serrures.
+
+**Exemple concret :** l'appli `shop` tourne sur 10 pods.
+```
+Sans Vault : 10 pods → 1 user "shop" / mot de passe "Shop2019!" (jamais changé depuis 2019)
+Avec Vault : pod-1 → v-k8s-shop-a8f2  (expire dans 1 h, renouvelé tant que le pod vit)
+             pod-2 → v-k8s-shop-91cd
+             ...
+             pod supprimé → son user disparaît à expiration du lease
+```
+
+**À quoi ça sert en prod :**
+- **Plus aucun mot de passe DB** dans les configs, le code ou les variables d'environnement.
+- **Traçabilité** : dans les logs Postgres, tu vois `v-k8s-shop-a8f2` faire une requête suspecte, et l'audit Vault te dit quel pod ou quelle appli l'a obtenu.
+- **Incident** : `vault lease revoke -prefix database/creds/shop` coupe **tous** les accès de l'appli en une commande.
+- **Conformité** (PCI-DSS, SOC 2, ISO 27001) : la rotation des mots de passe est automatique et prouvable.
+- **Rotation du mot de passe root** : plus personne ne connaît le mot de passe admin de la base, seul Vault le connaît.
+- Même principe pour **MySQL, MongoDB, Redis, RabbitMQ**, et pour les **identifiants cloud** (clés AWS IAM temporaires, comptes de service GCP, Azure).
+
+**Pièges en prod :**
+- L'appli doit savoir **se reconnecter** quand ses identifiants changent. Un pool de connexions ouvert avec un user expiré finit par échouer.
+- Un TTL trop court multiplie les créations d'utilisateurs, et donc la charge sur la DB. Il y a un équilibre à trouver (souvent 1 h à 24 h).
+- Crée un **compte dédié à Vault** dans la DB, avec juste le droit de créer et supprimer des rôles, pas le superuser.
+
 ## 0. Lancer un PostgreSQL à côté de Vault
 
 On le met sur le même réseau Docker que Vault (`vault_default`) pour que Vault le joigne par son nom :

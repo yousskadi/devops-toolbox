@@ -2,6 +2,35 @@
 
 **Objectif :** comprendre ce que le mode `-dev` te cache : initialisation, scellement (seal/unseal), persistance, sauvegarde et audit.
 
+## 🎯 Comprendre avant de pratiquer
+
+**En une phrase :** faire tourner Vault « pour de vrai », c'est savoir l'**installer**, le **déverrouiller**, le **sauvegarder**, le **surveiller** et réagir en cas d'**incident**.
+
+**Analogie, la salle des coffres d'une banque :**
+| Vault | Banque |
+|---|---|
+| Sealed (scellé) | La salle des coffres est fermée le matin : même le directeur n'y entre pas seul |
+| Unseal Shamir 2/3 | Il faut **2 des 3 directeurs**, chacun avec sa clé, pour ouvrir |
+| Auto-unseal (KMS) | Une serrure électronique reliée à un système de sécurité externe |
+| `operator seal` | Le **bouton d'urgence** qui reverrouille tout instantanément |
+| Audit log | La **caméra** qui filme chaque ouverture de coffre |
+| Snapshot Raft | La copie de sauvegarde du registre des coffres |
+
+**Exemple concret, une prod typique :**
+- un cluster de **3 ou 5 nœuds** Vault en Raft (survit à la perte d'1 ou 2 nœuds) ;
+- un **auto-unseal** via AWS KMS, Azure Key Vault ou GCP KMS : pas d'humain à réveiller à 3 h du matin après un redémarrage ;
+- un **snapshot** toutes les heures, envoyé vers S3 ou un stockage objet, avec des tests de restauration réguliers ;
+- l'**audit log** envoyé vers un SIEM (Splunk, ELK, Datadog), avec des alertes sur les accès anormaux ;
+- des **métriques Prometheus** et des alertes : scellé, leader perdu, latence, expiration des certificats ;
+- du **TLS partout**, le token root révoqué, et une procédure `generate-root` documentée pour les urgences.
+
+**À quoi ça sert en prod :** tout ce lab est **obligatoire** pour un vrai Vault. Le mode `-dev` n'existe que pour apprendre.
+
+**Pièges en prod :**
+- **Perdre les clés unseal (ou la clé KMS), c'est perdre toutes les données.** Il n'y a aucun moyen de récupération.
+- Un **audit device plein ou en panne bloque Vault** : il refuse de répondre plutôt que de fonctionner sans traces.
+- Une sauvegarde jamais restaurée n'est pas une sauvegarde : **teste les restores**.
+
 | | Mode dev (`docker-compose.yml`) | Mode serveur (`labs/vault-prod/`) |
 |---|---|---|
 | Stockage | Mémoire (perdu au redémarrage) | Raft sur disque (volume Docker) |

@@ -32,6 +32,36 @@ Format : **symptôme** → cause → solution. J'ajoute une entrée à chaque no
 - **Solution :** utiliser `vault kv patch` pour modifier une clé. Pour récupérer la version précédente : `vault kv get -version=N`, puis la réécrire.
 - **Vu le :** 2026-10-31 (lab 01)
 
+## `invalid capability "get"` en écrivant une policy
+
+- **Cause :** les capabilities sont des opérations API, pas des commandes CLI. « get » n'existe pas.
+- **Solution :** utiliser `read`. La liste complète : `create`, `read`, `update`, `patch`, `delete`, `list`, `sudo`, `deny`.
+- **Vu le :** 2026-10-31 (lab 02)
+
+## `kv metadata get` refusé (403) alors que `kv list` passe
+
+- **Cause :** `list` et `read` sont deux droits distincts sur `lab/metadata/...`. `kv list` utilise `list`, `kv metadata get` utilise `read`.
+- **Solution :** ajouter `read` au bloc `path "lab/metadata/app/*"` si l'historique doit être visible.
+- **Vu le :** 2026-10-31 (lab 02)
+
+## `vault kv metadata list` → affiche `Usage: vault kv metadata <subcommand>`
+
+- **Cause :** cette sous-commande n'existe pas (seulement `get`, `put`, `patch`, `delete`). La requête n'est même pas envoyée à Vault.
+- **Solution :** pour lister, `vault kv list lab/app`.
+- **Vu le :** 2026-10-31 (lab 02)
+
+## `vault unwrap` → `wrapping token is not valid or does not exist`
+
+- **Cause :** soit le ticket a **expiré** (`-wrap-ttl` dépassé), soit il a **déjà été consommé**, par toi ou par quelqu'un d'autre. Chaque `kv get -wrap-ttl` crée un **nouveau** ticket : une vieille valeur de `$WRAP` n'est plus valide.
+- **Solution :** recréer le ticket et l'utiliser dans le délai. Si le ticket était encore dans son délai, considère le secret comme **intercepté** et change-le.
+- **Vu le :** 2026-10-31 (lab 02)
+
+## `VAULT_TOKEN=$PARENT vault token create -policy=app-rw` → 403
+
+- **Cause :** un token ne peut créer que des enfants ayant un **sous-ensemble** de ses propres policies (protection contre l'élévation de privilèges).
+- **Solution :** c'est le comportement voulu. Pour donner `app-rw` à une appli, passe par une auth method (lab 03).
+- **Vu le :** 2026-10-31 (lab 02)
+
 ## `permission denied` (403) alors que la policy semble bonne
 
 - **Cause fréquente :** en KV v2, la policy doit viser `lab/data/...` (lecture/écriture) et `lab/metadata/...` (list), **pas** `lab/...`.

@@ -5,3 +5,4 @@ Une note par session : `AAAA-MM-JJ-sujet.md`, avec ce que j'ai appris, les erreu
 | Date | Sujet |
 |---|---|
 | 2026-10-31 | [Vault : lab 01 KV v2](2026-10-31-vault-lab01.md) |
+| 2026-10-31 | [Vault : lab 02 policies et tokens](2026-10-31-vault-lab02.md) |

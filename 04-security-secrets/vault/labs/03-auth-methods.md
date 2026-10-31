@@ -2,6 +2,37 @@
 
 **Objectif :** ne plus jamais distribuer de tokens à la main. On s'authentifie avec une méthode adaptée à chaque client, et Vault délivre un token avec les bonnes policies.
 
+## 🎯 Comprendre avant de pratiquer
+
+**En une phrase :** une *auth method* est la façon dont un humain ou une machine **prouve son identité** à Vault pour recevoir un token avec les bonnes policies.
+
+**Analogie, l'accueil d'une entreprise :**
+- un **salarié** présente sa carte d'identité : *userpass*, ou mieux, *OIDC/LDAP* (le compte d'entreprise) ;
+- un **livreur** a un numéro de commande et un code reçu par SMS : *AppRole* (`role_id` + `secret_id`) ;
+- un employé **déjà badgé par le bâtiment** : l'accueil appelle la sécurité du bâtiment pour confirmer (*Kubernetes*, *AWS IAM*), sans aucun mot de passe à fournir.
+
+**Exemple concret dans une entreprise :**
+| Qui | Auth method | Policies obtenues |
+|---|---|---|
+| Développeurs | OIDC (Google / Azure AD), groupe « devs » | `dev` |
+| Équipe SRE | OIDC, groupe « sre » | `admin-ops` |
+| Jenkins / GitLab CI | AppRole, ou JWT/OIDC de la CI | `shop-deployer` |
+| Pods Kubernetes | Kubernetes (ServiceAccount) | `shop-prod` |
+| VM sur AWS | AWS IAM | `batch-jobs` |
+
+**À quoi ça sert en prod :**
+- **Plus aucun token distribué à la main** : chacun s'authentifie, Vault délivre un token éphémère.
+- **Départ d'un salarié** : il est désactivé dans l'annuaire d'entreprise, donc il n'a plus accès à Vault, automatiquement.
+- **Groupes identity** : on donne les droits à un **groupe**, pas à chaque personne. Un nouvel arrivant dans « devs » hérite de tout.
+- **AppRole** pour les machines hors Kubernetes/cloud, avec un `secret_id` court, à usage limité, livré wrappé.
+- **Templated policies** : une seule policy donne à chaque utilisateur son espace privé `users/<son-nom>/`.
+
+**Le « secret zéro » :** pour obtenir un secret, il faut déjà prouver quelque chose. Avec AppRole, il faut livrer le `secret_id`, d'où le wrapping. Avec Kubernetes ou AWS, c'est **la plateforme** qui garantit l'identité, et il n'y a plus de secret zéro du tout. C'est pour ça qu'on préfère ces méthodes quand elles sont disponibles.
+
+**Pièges en prod :**
+- `userpass` en prod pour des humains : préfère OIDC/LDAP (MFA, gestion centralisée des départs).
+- Un `secret_id` AppRole sans TTL ni limite d'usage, copié dans une variable de CI pour toujours : c'est un mot de passe éternel déguisé.
+
 Prérequis : lab 02 (policies `app-ro` et `app-rw`).
 
 ```bash

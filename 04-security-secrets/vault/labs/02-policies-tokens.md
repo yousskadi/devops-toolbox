@@ -2,6 +2,50 @@
 
 **Objectif :** appliquer le moindre privilège. Par défaut, Vault **refuse tout** : les policies ouvrent des droits sur des chemins.
 
+## 🎯 Comprendre avant de pratiquer
+
+**En une phrase :** le **token** est un badge, la **policy** est la liste des portes que ce badge ouvre. Sans policy, le badge n'ouvre rien.
+
+**Analogie, le badge d'entreprise :**
+| Vault | Entreprise |
+|---|---|
+| Token | Le badge |
+| Policy | Les portes autorisées sur ce badge |
+| `ttl` | Badge visiteur valable jusqu'au soir (on peut le prolonger à l'accueil) |
+| `explicit-max-ttl` | Badge prestataire : 1 mois maximum, prolongations comprises |
+| `revoke` | Désactiver le badge |
+| Accessor | Le **numéro** du badge, que la sécurité peut désactiver sans l'avoir en main |
+| Token root | Le passe-partout du directeur, gardé au coffre |
+| Response wrapping | Un ticket de consigne à usage unique pour remettre un objet à quelqu'un |
+
+**Exemple concret :**
+```hcl
+# Policy "shop-prod" : l'appli shop lit SES secrets de prod, rien d'autre
+path "shop/data/prod/*"     { capabilities = ["read"] }
+
+# Policy "shop-deployer" : la CI peut aussi écrire, mais pas toucher au secret root
+path "shop/data/prod/*"     { capabilities = ["create", "read", "update", "patch"] }
+path "shop/data/prod/root"  { capabilities = ["deny"] }
+
+# Policy "dev" : les développeurs ne voient que la dev
+path "shop/data/dev/*"      { capabilities = ["create", "read", "update", "patch", "delete"] }
+path "shop/metadata/dev/*"  { capabilities = ["list", "read"] }
+```
+
+**À quoi ça sert en prod :**
+- **Moindre privilège** : chaque appli a sa policy et ne voit que ses secrets. Une appli piratée ne fuit que ses propres secrets, pas ceux de toute l'entreprise.
+- **Une modif de policy s'applique tout de suite** à tous les tokens qui la portent. Retirer un droit à 200 applis prend une seule commande.
+- **TTL courts** : un token volé expire vite. `explicit-max-ttl` oblige les applis à se ré-authentifier régulièrement.
+- **Incident** : on révoque un token, et toute sa descendance tombe en cascade. Avec l'accessor, un admin agit sans connaître le token.
+- **Response wrapping** : on livre un secret initial (par exemple un `secret_id` AppRole à une CI) sans qu'il traîne dans les logs, et on **détecte** une interception.
+- Les policies sont stockées dans **Git** et appliquées par Terraform, avec revue de code comme pour le reste de l'infra.
+
+**Pièges en prod :**
+- Oublier le `/data/` (KV v2) dans les chemins : la policy ne donne alors aucun droit.
+- Tester avec le token `root` : tout marche, puis tout casse en prod avec le vrai token. Teste **toujours** avec un token portant la vraie policy (`vault token capabilities`).
+- `path "*"` ou des jokers trop larges, qui ouvrent bien plus que prévu.
+- Le token root utilisé au quotidien : il se révoque après l'installation (lab 09).
+
 Prérequis : lab 01 (mount `lab/` existant).
 
 ```bash
@@ -127,6 +171,21 @@ vault policy read default       # attachée à tous les tokens : lookup-self, re
 ```
 
 Le token **root** contourne toutes les policies. En prod, on le révoque après l'installation et on en régénère un seulement en cas d'urgence (`vault operator generate-root`).
+
+## ✅ Ce qu'il faut retenir
+
+| Notion | À retenir |
+|---|---|
+| Par défaut | **Tout est refusé.** Une policy est une liste blanche : chemin → capabilities. |
+| Capabilities | Ce sont des opérations d'API, **pas** des noms de commandes : `read` (et non « get »), `create`, `update`, `patch`, `delete`, `list`, `sudo`, `deny`. |
+| `read` et `list` | Deux droits distincts sur `/metadata/` : `list` donne les **noms** des secrets (`kv list`), `read` donne leur **historique** (`kv metadata get`). |
+| Debug | `vault token capabilities <token> <chemin>` montre les droits effectifs sans faire l'action. |
+| Modification | Le token ne porte que le **nom** de ses policies, que Vault relit à chaque requête. Une policy modifiée s'applique **immédiatement**. |
+| Plusieurs policies | Elles sont fusionnées, et la règle la plus **spécifique** gagne (un chemin exact bat un joker). **`deny` l'emporte toujours.** |
+| `ttl` / `explicit-max-ttl` | `ttl` est une **minuterie** remise à zéro par `renew`. `explicit-max-ttl` est un **mur** absolu compté depuis la création : un `renew` ne le dépasse jamais. |
+| Hiérarchie | Révoquer un parent révoque tous ses enfants. Un enfant ne peut avoir **qu'un sous-ensemble** des policies du parent (pas d'élévation de privilèges). |
+| Accessor | Il permet de consulter et révoquer un token **sans pouvoir l'utiliser**. On le trouve en clair dans l'audit log. |
+| Wrapping | Un ticket à usage unique, avec TTL, qui ne contient pas le secret. Chaque `-wrap-ttl` crée un **nouveau** ticket. Si le ticket est déjà consommé avant son destinataire, c'est une **interception**. |
 
 ## Exercices
 

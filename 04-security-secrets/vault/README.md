@@ -37,11 +37,13 @@ vault status
 
 Parcours complet et checklist de compétences : **[labs/README.md](labs/README.md)**
 
+Chaque lab commence par une section **🎯 Comprendre avant de pratiquer** (explication simple, analogie, exemple concret, usage en prod, pièges), puis les étapes pratiques.
+
 | # | Lab | Ce que j'apprends | Fait |
 |---|---|---|---|
 | 01 | [KV v2](labs/01-kv-v2.md) | Stocker, versionner, supprimer, check-and-set, API HTTP | ✅ |
-| 02 | [Policies & tokens](labs/02-policies-tokens.md) | Moindre privilège, TTL, hiérarchie, response wrapping | ⏳ |
-| 03 | [Auth methods](labs/03-auth-methods.md) | userpass, AppRole, identity, templated policies | |
+| 02 | [Policies & tokens](labs/02-policies-tokens.md) | Moindre privilège, TTL, hiérarchie, response wrapping | ✅ |
+| 03 | [Auth methods](labs/03-auth-methods.md) | userpass, AppRole, identity, templated policies | ⏳ |
 | 04 | [Secrets dynamiques DB](labs/04-database-dynamic-secrets.md) | Users PostgreSQL éphémères, leases, rotation root | |
 | 05 | [Transit](labs/05-transit.md) | Encryption as a Service, rotation, rewrap, signature | |
 | 06 | [PKI](labs/06-pki.md) | CA racine et intermédiaire, certificats courts, révocation | |

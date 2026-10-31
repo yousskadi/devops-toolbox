@@ -2,6 +2,33 @@
 
 **Objectif :** émettre des certificats TLS **courts** (heures ou jours) à la demande, au lieu de certificats d'un an gérés à la main.
 
+## 🎯 Comprendre avant de pratiquer
+
+**En une phrase :** Vault devient **ta propre autorité de certification** et délivre des certificats TLS en quelques millisecondes, avec des **durées courtes** (heures ou jours).
+
+**Analogie, la préfecture express :** au lieu d'une carte d'identité valable 10 ans (qu'un voleur peut utiliser 10 ans), tu reçois une carte **valable 24 h**, renouvelée automatiquement chaque matin. Volée, elle ne sert plus à rien le lendemain.
+
+**Exemple concret :**
+```
+Lab Root CA (10 ans, gardée hors ligne en vrai)
+ └── Lab Intermediate CA (5 ans, dans Vault)
+      ├── api.shop.svc.cluster.local      (24 h)  ← mTLS entre microservices
+      ├── grafana.internal.lab.local      (72 h)  ← renouvelé par cert-manager
+      └── db-replica-2.internal           (24 h)
+```
+
+**À quoi ça sert en prod :**
+- **mTLS entre services** : chaque microservice prouve son identité et le trafic interne est chiffré (zero trust).
+- **Certificats internes** pour les noms que Let's Encrypt ne peut pas valider (`*.svc.cluster.local`, `*.internal`).
+- **Fin des pannes « certificat expiré »** oublié dans un coin : tout est automatisé et court.
+- **Révocation presque inutile** : un certificat de 24 h volé expire tout seul.
+- Intégration avec **cert-manager** (Kubernetes), **Vault Agent**, **Consul** et les service mesh.
+
+**Pièges en prod :**
+- Les clients doivent faire **confiance à ta CA racine** : il faut la distribuer dans les trust stores (OS, conteneurs, navigateurs internes).
+- On ne signe jamais de certificats finaux avec la **racine** : on passe par une intermédiaire, et la racine reste idéalement hors ligne.
+- Lance `tidy` régulièrement, sinon le stockage et la CRL grossissent sans fin.
+
 ```bash
 source labs/env.sh
 ```

@@ -1,0 +1,37 @@
+# ServiceAccount utilisé par VAULT pour valider les JWT des pods (TokenReview API)
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vault-auth
+  namespace: demo
+---
+# Token longue durée pour ce SA (Vault s'en sert comme token_reviewer_jwt)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: vault-auth-token
+  namespace: demo
+  annotations:
+    kubernetes.io/service-account.name: vault-auth
+type: kubernetes.io/service-account-token
+---
+# Droit d'appeler l'API TokenReview
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: vault-auth-delegator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:auth-delegator
+subjects:
+- kind: ServiceAccount
+  name: vault-auth
+  namespace: demo
+---
+# Identité de notre application
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: webapp
+  namespace: demo

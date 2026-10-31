@@ -1,0 +1,38 @@
+apiVersion: templates.gatekeeper.sh/v1
+kind: ConstraintTemplate
+metadata:
+  name: k8srequiredlabels
+  annotations:
+    description: "Exige que les ressources aient des labels spécifiques"
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sRequiredLabels
+      validation:
+        openAPIV3Schema:
+          type: object
+          properties:
+            labels:
+              type: array
+              description: "Liste des labels requis"
+              items:
+                type: string
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8srequiredlabels
+
+        violation[{"msg": msg, "details": {"missing_labels": missing}}] {
+          # Récupérer les labels fournis
+          provided := {label | input.review.object.metadata.labels[label]}
+          
+          # Labels requis (paramètres)
+          required := {label | label := input.parameters.labels[_]}
+          
+          # Calculer les labels manquants
+          missing := required - provided
+          count(missing) > 0
+          
+          msg := sprintf("Les labels suivants sont manquants: %v", [missing])
+        }

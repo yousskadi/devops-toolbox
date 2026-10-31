@@ -1,0 +1,40 @@
+# ESO s'authentifie auprès de Vault avec un ServiceAccount, plus de token root dans un Secret
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: eso-reader
+  namespace: demo
+---
+apiVersion: external-secrets.io/v1
+kind: SecretStore
+metadata:
+  name: vault-k8s
+  namespace: demo
+spec:
+  provider:
+    vault:
+      server: "http://host.docker.internal:8200"
+      path: "lab"
+      version: "v2"
+      auth:
+        kubernetes:
+          mountPath: "kubernetes"
+          role: "eso-reader"
+          serviceAccountRef:
+            name: eso-reader
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: webapp-db
+  namespace: demo
+spec:
+  refreshInterval: 30s
+  secretStoreRef:
+    name: vault-k8s
+    kind: SecretStore
+  target:
+    name: webapp-db
+  dataFrom:
+  - extract:
+      key: webapp/db        # toutes les clés de lab/webapp/db

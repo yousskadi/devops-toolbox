@@ -1,0 +1,12 @@
+{
+  "name": "devops-static",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "runArgs": ["--privileged"],
+  "workspaceFolder": "/workspace",
+  "mounts": [
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+  ],
+  "postCreateCommand": "export FEATURES='terraform devtools k3d' && bash .devcontainer/scripts/bootstrap.sh"
+}

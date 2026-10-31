@@ -1,0 +1,19 @@
+# Vault en mode "serveur" (non-dev) : stockage Raft persistant, init + unseal manuels.
+# Tourne à côté du Vault dev : http://localhost:8210
+services:
+  vault-prod:
+    image: hashicorp/vault:1.19.0
+    container_name: vault-prod
+    ports:
+      - "8210:8200"
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - ./config:/vault/config
+      - vault-prod-data:/vault/file
+    # L'entrypoint de l'image ajoute automatiquement -config=/vault/config :
+    # ne pas le répéter, sinon le listener est déclaré deux fois (bind: address already in use).
+    command: server
+
+volumes:
+  vault-prod-data:

@@ -1,0 +1,20 @@
+# --- Secrets & artefacts générés pendant les labs (ne jamais commiter) ---
+**/init.txt
+*.snap
+*.key
+*.pem
+*.csr
+*.crt
+**/labs/web.json
+*.tfstate
+*.tfstate.*
+.terraform/
+*.env
+!.env.example
+kubeconfig*
+
+# --- Divers ---
+.DS_Store
+*.swp
+.vscode/
+.idea/

@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapp
+  namespace: demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: webapp}
+  template:
+    metadata:
+      labels: {app: webapp}
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "webapp"
+        # Fichier /vault/secrets/db.env rendu à partir d'un template
+        vault.hashicorp.com/agent-inject-secret-db.env: "lab/data/webapp/db"
+        vault.hashicorp.com/agent-inject-template-db.env: |
+          {{- with secret "lab/data/webapp/db" -}}
+          DB_USER={{ .Data.data.user }}
+          DB_PASSWORD={{ .Data.data.password }}
+          {{- end }}
+    spec:
+      serviceAccountName: webapp
+      containers:
+      - name: app
+        image: busybox
+        command: ["sh", "-c", "while true; do date; cat /vault/secrets/db.env; echo; sleep 15; done"]

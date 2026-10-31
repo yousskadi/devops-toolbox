@@ -1,0 +1,17 @@
+# Vault en mode dev : tout en mémoire, token root = "root". Pour apprendre uniquement.
+# "name: vault" fige le nom du projet compose -> réseau "vault_default" (utilisé par le lab 04),
+# quel que soit le dossier où se trouve ce fichier.
+name: vault
+
+services:
+  vault:
+    image: hashicorp/vault:1.19.0
+    container_name: vault
+    ports:
+      - "8200:8200"
+    environment:
+      - VAULT_DEV_ROOT_TOKEN_ID=root
+      - VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200
+    cap_add:
+      - IPC_LOCK
+    command: server -dev

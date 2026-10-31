@@ -25,6 +25,8 @@
 ## Démarrage rapide
 
 ```bash
+bash ~/TP/04-security-secrets/stack/stack-up.sh   # toute la stack : kind + Vault + ESO (voir ../stack/)
+# ou Vault seul :
 cd ~/TP/04-security-secrets/vault
 docker compose up -d                 # Vault 1.19 en mode dev → http://localhost:8200 (token : root)
 source labs/env.sh                   # fonction `vault` : le CLI s'exécute dans le conteneur

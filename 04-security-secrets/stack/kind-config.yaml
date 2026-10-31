@@ -1,0 +1,5 @@
+# Cluster kind de la stack Vault + ESO (1 nœud control-plane).
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+  - role: control-plane

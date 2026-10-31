@@ -30,6 +30,8 @@ Un pod du namespace "dev", même avec un SA nommé "shop", est refusé.
 
 ## Comment ça marche
 
+> 📊 **Diagramme :** [séquence complète de l'auth Kubernetes](../diagrams/sequence-auth-kubernetes/auth-kubernetes.html) (login, TokenReview, vérification du rôle, lecture du secret). Ouvre le fichier `.html` en local dans un navigateur.
+
 ```
  Pod (SA webapp)                     Vault (conteneur Docker)                kind API server
   │ 1. JWT du ServiceAccount ──────►  auth/kubernetes/login role=webapp

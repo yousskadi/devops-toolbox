@@ -119,6 +119,8 @@ VAULT_TOKEN=$RW vault kv get lab/app/root-creds         # ❌ deny
 
 ## 4. Cycle de vie d'un token
 
+> 📊 **Diagramme :** [cycle de vie d'un token](../diagrams/lifecycle-token/cycle-vie-token.html) (création, renew, mur `explicit-max-ttl`, révocation, cascade). Ouvre le fichier `.html` en local dans un navigateur.
+
 ```bash
 vault token create -policy=app-ro -ttl=2m -explicit-max-ttl=5m -format=json | jq .auth
 T=$(vault token create -policy=app-ro -ttl=2m -explicit-max-ttl=5m -field=token)

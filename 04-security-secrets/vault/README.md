@@ -52,6 +52,9 @@ Chaque lab commence par une section **🎯 Comprendre avant de pratiquer** (expl
 | 09 | [Opérations](labs/09-operations.md) | Raft, init/unseal, seal, snapshot, audit | |
 | 10 | [Défis](labs/10-defis.md) | Exercices de synthèse | |
 
+- 📊 Diagrammes interactifs (générés avec [Archify](https://github.com/tt-a1i/archify), à ouvrir en local) :
+  - [Authentification Kubernetes, séquence](diagrams/sequence-auth-kubernetes/auth-kubernetes.html)
+  - [Cycle de vie d'un token](diagrams/lifecycle-token/cycle-vie-token.html)
 - 📄 [cheatsheet.md](cheatsheet.md) : les commandes
 - 🔧 [troubleshooting.md](troubleshooting.md) : les erreurs déjà rencontrées
 
@@ -66,6 +69,7 @@ vault/
     ├── bootstrap-eso-demo.sh # recrée kv/org/dev et kv/org/prod
     ├── manifests/            # YAML Kubernetes des labs 07-08
     └── vault-prod/           # Vault en mode serveur, Raft (lab 09, port 8210)
+└── diagrams/                 # diagrammes Archify : <nom>.html + candidate.json (source)
 ```
 
 ## Ressources

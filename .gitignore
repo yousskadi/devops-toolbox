@@ -18,3 +18,11 @@ kubeconfig*
 *.swp
 .vscode/
 .idea/
+
+# --- Archify : reçus de vérification générés (on garde .html + candidate.json) ---
+**/diagrams/**/*.browser-check.json
+**/diagrams/**/*.delivery.json
+**/diagrams/**/*.finalize.json
+**/diagrams/**/*.finalize-summary.json
+**/diagrams/**/review-*/
+.archify/

@@ -16,14 +16,14 @@ Ce fichier garde la mémoire de notre travail, d'une session à l'autre. Claude 
   - Commandes Vault : `cd ~/TP/04-security-secrets/vault && source labs/env.sh`, puis `vault ...` (le CLI tourne dans le conteneur, `VAULT_TOKEN=<t> vault ...` pour changer d'identité).
 - ESO 2.14.0 dans le namespace `external-secrets`. Namespace de démo : `demo`.
 - **Démarrer / arrêter toute la stack** : `bash 04-security-secrets/stack/stack-up.sh` (idempotent, recrée ce qui manque) et `stack-down.sh` (stop ; `--delete` pour tout supprimer). Testé le 2026-10-31 : relance ~1 min 30, depuis zéro ~6 min.
-- Pas de Chrome/Chromium utilisable dans WSL : le contrôle navigateur d'Archify est sauté (le Chromium Playwright du cache plante).
+- Contrôle navigateur d'Archify : pas de Chrome installé dans WSL et le Chromium complet de Playwright échoue, mais le headless shell fonctionne : `ARCHIFY_CHROME=$(ls ~/.cache/ms-playwright/chromium_headless_shell-*/*/chrome-headless-shell)`.
 - Diagrammes Archify dans `04-security-secrets/vault/diagrams/`. GitHub Pages volontairement non activé.
 
 ## Avancement
 
 | Parcours | Où on en est |
 |---|---|
-| Vault (`04-security-secrets/vault/labs/`) | Labs **01 à 03 terminés** (2026-11-02). **Prochaine séance : lab 04 (secrets dynamiques, base de données)**. |
+| Vault (`04-security-secrets/vault/labs/`) | Labs **01 à 03 et bonus OIDC/Keycloak terminés** (2026-11-02). **Prochaine séance : lab 04 (secrets dynamiques, base de données)**. |
 
 Les détails de chaque séance sont dans `journal/`.
 

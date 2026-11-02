@@ -98,6 +98,30 @@ Format : **symptôme** → cause → solution. J'ajoute une entrée à chaque no
 - **Solution :** désactiver l'entité pour tout couper : `vault write identity/entity/id/<id> disabled=true`. C'est réversible, et les tokens remarchent à la réactivation : si le compte est compromis, révoquer aussi les tokens et changer le mot de passe.
 - **Vu le :** 2026-11-02 (lab 03)
 
+## OIDC : `error checking oidc discovery URL` (code 400)
+
+- **Cause :** Keycloak utilise un certificat auto-signé et Vault ne lui fait pas confiance, ou le nom du serveur est inconnu du conteneur.
+- **Solution :** passer le certificat dans `oidc_discovery_ca_pem`. Vérifier le nom avec `docker exec vault getent hosts <nom>`.
+- **Vu le :** 2026-11-02 (test sur un Vault jetable)
+
+## OIDC : connexion réussie, mais aucun droit de groupe (`member_entity_ids <nil>`)
+
+- **Cause :** l'alias du groupe externe ne correspond pas à ce que reçoit Vault : nom différent du groupe Keycloak, ou `mount_accessor` d'une autre méthode (ici `userpass`, à cause d'un ancien `$ACC`).
+- **Solution :** `vault read identity/group-alias/id/<id>` et vérifier `name` et `mount_path`. Corriger avec `vault write identity/group-alias/id/<id> name=<groupe> mount_accessor=<accessor oidc> canonical_id=<id du groupe>`, puis se reconnecter.
+- **Vu le :** 2026-11-02 (lab bonus OIDC)
+
+## OIDC : `failed to fetch groups: "groups" claim not found in token`
+
+- **Cause :** l'utilisateur n'a aucun groupe dans Keycloak, donc le champ `groups` est absent, alors que le rôle l'exige avec `groups_claim`. Le mapper peut aussi manquer.
+- **Solution :** ajouter l'utilisateur à un groupe, ou vérifier le mapper **Group Membership** du client.
+- **Vu le :** 2026-11-02 (lab bonus OIDC)
+
+## `sso.homelab.local` inaccessible, et `hosts` Windows refusé même en administrateur
+
+- **Cause :** un nom `.local` n'est pas connu du DNS habituel, et le fichier `hosts` a l'attribut lecture seule.
+- **Solution :** retirer l'attribut avec `Set-ItemProperty $h IsReadOnly $false`, ajouter la ligne avec `Add-Content`, puis remettre l'attribut. Garder le contenu existant du fichier.
+- **Vu le :** 2026-11-02 (lab bonus OIDC)
+
 ## `permission denied` (403) alors que la policy semble bonne
 
 - **Cause fréquente :** en KV v2, la policy doit viser `lab/data/...` (lecture/écriture) et `lab/metadata/...` (list), **pas** `lab/...`.

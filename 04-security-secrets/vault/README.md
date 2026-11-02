@@ -57,6 +57,7 @@ Chaque lab commence par une section **🎯 Comprendre avant de pratiquer** (expl
 - 📊 Diagrammes interactifs (générés avec [Archify](https://github.com/tt-a1i/archify), à ouvrir en local) :
   - [Authentification Kubernetes, séquence](diagrams/sequence-auth-kubernetes/auth-kubernetes.html)
   - [Cycle de vie d'un token](diagrams/lifecycle-token/cycle-vie-token.html)
+  - [Connexion OIDC avec Keycloak, séquence](diagrams/sequence-oidc-keycloak/connexion-oidc-keycloak.html)
 - 📄 [cheatsheet.md](cheatsheet.md) : les commandes
 - 🔧 [troubleshooting.md](troubleshooting.md) : les erreurs déjà rencontrées
 

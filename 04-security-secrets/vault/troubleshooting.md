@@ -62,6 +62,42 @@ Format : **symptôme** → cause → solution. J'ajoute une entrée à chaque no
 - **Solution :** c'est le comportement voulu. Pour donner `app-rw` à une appli, passe par une auth method (lab 03).
 - **Vu le :** 2026-10-31 (lab 02)
 
+## `vault kv get` → 403 avec le token `root`
+
+- **Cause :** après un redémarrage du Vault dev, le moteur `lab/` n'existe plus. Le CLI demande à quel moteur appartient le chemin, et Vault répond 403. Le token n'est pas en cause.
+- **Solution :** `vault secrets list`, puis recréer ce qui manque.
+- **Vu le :** 2026-11-01 (lab 03)
+
+## AppRole : `invalid role or secret ID` (code 400)
+
+- **Cause :** le `secret_id` est épuisé (`secret_id_num_uses`), expiré (`secret_id_ttl`), détruit ou faux. Le message reste volontairement vague.
+- **Solution :** vérifier que `$ROLE_ID` et `$SECRET_ID` ne sont pas vides, puis générer un nouveau `secret_id` juste avant le login.
+- **Vu le :** 2026-11-01 (lab 03)
+
+## AppRole : `source address "127.0.0.1" unauthorized by CIDR restrictions` (code 400)
+
+- **Cause :** le rôle a un `secret_id_bound_cidrs` qui n'inclut pas l'adresse du client. Le `%!w(<nil>)` en fin de message est un défaut d'affichage de Vault.
+- **Solution :** connecter le client depuis une adresse autorisée, ou corriger la plage du rôle.
+- **Vu le :** 2026-11-01 (lab 03)
+
+## `VAULT_TOKEN=$X vault token lookup` affiche `display_name token`
+
+- **Cause :** `$X` est vide (ici, token rangé dans `$DAVE_TOKEN` mais lecture de `$DAVE`). Avec `labs/env.sh`, un token vide bascule sur **root**, sans erreur : le test ne prouve donc rien.
+- **Solution :** `echo "[$X]"`, puis relancer avec la bonne variable. `vault token lookup | grep display_name` indique l'identité réellement utilisée.
+- **Vu le :** 2026-11-02 (lab 03)
+
+## Un token vit plus longtemps que son `token_ttl`
+
+- **Cause :** `token_ttl` n'est que la durée de départ. Le token peut être renouvelé jusqu'à `token_max_ttl`, compté depuis sa création. `creation_ttl` ne change jamais : c'est `ttl` qui indique le temps restant.
+- **Solution :** pour une durée de vie stricte, régler `token_max_ttl` à la même valeur : `vault write auth/approle/role/batch token_max_ttl=5m`. Une écriture partielle conserve les autres options du rôle.
+- **Vu le :** 2026-11-02 (lab 03)
+
+## Un utilisateur userpass bloqué garde l'accès avec son ancien token
+
+- **Cause :** changer le mot de passe ou poser `token_bound_cidrs` ne concerne que les **nouvelles** connexions.
+- **Solution :** désactiver l'entité pour tout couper : `vault write identity/entity/id/<id> disabled=true`. C'est réversible, et les tokens remarchent à la réactivation : si le compte est compromis, révoquer aussi les tokens et changer le mot de passe.
+- **Vu le :** 2026-11-02 (lab 03)
+
 ## `permission denied` (403) alors que la policy semble bonne
 
 - **Cause fréquente :** en KV v2, la policy doit viser `lab/data/...` (lecture/écriture) et `lab/metadata/...` (list), **pas** `lab/...`.

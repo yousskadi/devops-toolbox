@@ -23,13 +23,13 @@ Ce fichier garde la mémoire de notre travail, d'une session à l'autre. Claude 
 
 | Parcours | Où on en est |
 |---|---|
-| Vault (`04-security-secrets/vault/labs/`) | Labs **01 et 02 terminés** (2026-10-31). **Prochaine séance : lab 03 (auth methods)**, étape 1 userpass. |
+| Vault (`04-security-secrets/vault/labs/`) | Labs **01 à 03 terminés** (2026-11-02). **Prochaine séance : lab 04 (secrets dynamiques, base de données)**. |
 
 Les détails de chaque séance sont dans `journal/`.
 
 ## Façon de travailler (préférences de Youssef)
 
-- **Guider pas à pas** : une étape à la fois, donner les commandes, puis Youssef les lance et colle la sortie.
+- **Guider pas à pas** : une étape à la fois, peu de commandes d'un coup et chacune expliquée, puis Youssef les lance et colle la sortie.
 - Faire **prédire** le résultat avant de lancer (✅/❌), puis expliquer les écarts.
 - Explications **claires et simples** : une phrase, une analogie, un exemple concret, **l'utilité en prod**.
 - Corriger les réponses avec bienveillance : ✅ juste, 🟡 à nuancer, ❌ faux, avec la bonne explication.
